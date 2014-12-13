@@ -656,6 +656,12 @@ const Events = Module("events", {
         return ret;
     },
 
+    __focusGuard: function (doc, elem) {
+        if (!doc.pageIsFullyLoaded && !elem.__manualFocus)
+            return false;
+        return true;
+    },
+
     // argument "event" is deliberately not used, as i don't seem to have
     // access to the real focus target
     // Huh? --djk
@@ -678,6 +684,9 @@ const Events = Module("events", {
 
             if ((elem instanceof HTMLInputElement && /^(text|password|datetime|datetime-local|date|month|time|week|number|range|email|url|search|tel|color)$/.test(elem.type)) ||
                 (elem instanceof HTMLSelectElement)) {
+                if (!this.__focusGuard(win.document, elem))
+                    return;
+
                 liberator.mode = modes.INSERT;
                 if (hasHTMLDocument(win))
                     buffer.lastInputField = elem;
@@ -689,6 +698,9 @@ const Events = Module("events", {
             }
 
             if (elem instanceof HTMLTextAreaElement || (elem && elem.contentEditable == "true")) {
+                if (!this.__focusGuard(win.document, elem))
+                    return;
+
                 if (options["insertmode"])
                     modes.set(modes.INSERT);
                 else if (elem.selectionEnd - elem.selectionStart > 0)

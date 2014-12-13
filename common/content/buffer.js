@@ -514,6 +514,7 @@ const Buffer = Module("buffer", {
         }
         else {
             elem.focus();
+            elem.__manualFocus = 1
 
             // for imagemap
             if (elem instanceof HTMLAreaElement) {
