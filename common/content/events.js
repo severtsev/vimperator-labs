@@ -656,12 +656,6 @@ const Events = Module("events", {
         return ret;
     },
 
-    __focusGuard: function (doc, elem) {
-        if (!doc.pageIsFullyLoaded && !elem.__manualFocus)
-            return false;
-        return true;
-    },
-
     // argument "event" is deliberately not used, as i don't seem to have
     // access to the real focus target
     // Huh? --djk
@@ -679,12 +673,23 @@ const Events = Module("events", {
             buffer.localStore.focusedFrame = win;
 
         try {
-            if (elem && elem.readOnly)
+            if (!elem || elem.readOnly)
                 return;
+
+            function focusIsAllowed(elem) {
+                let focused = document.commandDispatcher.focusedWindow;
+                if (elem.allowElementFocus || focused.allowFocusAdvance) {
+                    elem.allowElementFocus = null
+                    focused.allowFocusAdvance = null;
+                    return true;
+                }
+                elem.blur();
+                return false;
+            }
 
             if ((elem instanceof HTMLInputElement && /^(text|password|datetime|datetime-local|date|month|time|week|number|range|email|url|search|tel|color)$/.test(elem.type)) ||
                 (elem instanceof HTMLSelectElement)) {
-                if (!this.__focusGuard(win.document, elem))
+                if (!focusIsAllowed(elem))
                     return;
 
                 liberator.mode = modes.INSERT;
@@ -698,7 +703,7 @@ const Events = Module("events", {
             }
 
             if (elem instanceof HTMLTextAreaElement || (elem && elem.contentEditable == "true")) {
-                if (!this.__focusGuard(win.document, elem))
+                if (!focusIsAllowed(elem))
                     return;
 
                 if (options["insertmode"])
@@ -1184,7 +1189,7 @@ const Events = Module("events", {
         // focus events
         mappings.add([modes.NORMAL, modes.PLAYER, modes.VISUAL, modes.CARET],
             ["<Tab>"], "Advance keyboard focus",
-            function () { document.commandDispatcher.advanceFocus(); });
+            function () { buffer.advanceFocus() });
 
         mappings.add([modes.NORMAL, modes.PLAYER, modes.VISUAL, modes.CARET, modes.INSERT, modes.TEXTAREA],
             ["<S-Tab>"], "Rewind keyboard focus",

@@ -463,8 +463,9 @@ const Liberator = Module("liberator", {
 
         if (clearFocusedElement && liberator.focus)
             liberator.focus.blur();
-        if (elem && elem != liberator.focus)
-            elem.focus();
+        if (elem && elem != liberator.focus) {
+            buffer.focus(elem);
+        }
     },
 
     /**

@@ -498,6 +498,19 @@ const Buffer = Module("buffer", {
         return util.Array.compact(buffer.getAllFrames().map(_getCurrentWord)).join("\n");
     },
 
+    focus: function (elem) {
+        if (elem) {
+            elem.allowElementFocus = true;
+            elem.focus();
+        }
+    },
+
+    advanceFocus: function () {
+        let dispatcher = document.commandDispatcher;
+        dispatcher.focusedWindow.allowFocusAdvance = true;
+        dispatcher.advanceFocus();
+    },
+
     /**
      * Focuses the given element. In contrast to a simple
      * elem.focus() call, this function works for iframes and
@@ -513,8 +526,7 @@ const Buffer = Module("buffer", {
             buffer.lastInputField = elem;
         }
         else {
-            elem.focus();
-            elem.__manualFocus = 1
+            buffer.focus(elem);
 
             // for imagemap
             if (elem instanceof HTMLAreaElement) {
@@ -606,7 +618,7 @@ const Buffer = Module("buffer", {
         let offsetY = 1;
 
         if (elem instanceof HTMLFrameElement || elem instanceof HTMLIFrameElement) {
-            elem.contentWindow.focus();
+            buffer.focus(elem.contentWindow);
             return;
         }
         else if (elem instanceof HTMLAreaElement) { // for imagemap
@@ -635,7 +647,7 @@ const Buffer = Module("buffer", {
             liberator.echoerr("Invalid where argument for followLink(): " + where);
         }
 
-        elem.focus();
+        buffer.focus(elem);
 
         options.withContext(function () {
             options.setPref("browser.tabs.loadInBackground", true);
